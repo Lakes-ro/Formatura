@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin · Login</title>
+<link rel="manifest" href="manifest-admin.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0e0e10">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container container-estreito">
+    <header class="cabecalho">
+      <h1>Painel Administrativo</h1>
+      <p>Acesso restrito à equipe de organização.</p>
+    </header>
+
+    <form id="form-login" class="card-form" novalidate action="javascript:void(0);">
+      <div class="campo">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" required autocomplete="username" placeholder="voce@exemplo.com">
+      </div>
+
+      <div class="campo">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" name="senha" required autocomplete="current-password" placeholder="••••••••">
+      </div>
+
+      <button type="submit" id="btn-entrar" class="btn-neon">Entrar</button>
+      <p id="login-status" class="form-status" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+
+  <script type="module" src="supabase.js?v=2"></script>
+  <script type="module" src="admin_login.js?v=2"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+    }
+  </script>
+</body>
+</html>

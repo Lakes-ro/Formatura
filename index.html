@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deixe sua Homenagem</title>
+<link rel="manifest" href="manifest-publico.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0e0e10">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -70,7 +74,13 @@
   <!-- DOMPurify: sanitização do HTML digitado no editor rico, evita XSS -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 
-  <script type="module" src="supabase.js"></script>
-  <script type="module" src="form.js"></script>
+  <script type="module" src="supabase.js?v=2"></script>
+  <script type="module" src="form.js?v=2"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+    }
+  </script>
 </body>
 </html>

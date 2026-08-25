@@ -10,10 +10,31 @@ const btnSair = document.getElementById('btn-sair');
 const btnSino = document.getElementById('btn-sino');
 const badgeEl = document.getElementById('badge-notificacao');
 const areaToasts = document.getElementById('area-toasts');
+const painelNotificacoesEl = document.getElementById('painel-notificacoes');
+const listaNotificacoesEl = document.getElementById('lista-notificacoes');
 
 let itens = [];
 let filtroAtual = 'pendentes';
 let naoLidas = 0;
+let historicoNotificacoes = [];
+
+// ---------------------------------------------------------------
+// Notificações nativas do sistema (Web Notifications API)
+// ---------------------------------------------------------------
+function pedirPermissaoNotificacao() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function notificarSistema(titulo, corpo) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  // Se a página estiver em segundo plano ou minimizada, a notificação
+  // do sistema operacional aparece mesmo assim, enquanto a aba estiver aberta.
+  new Notification(titulo, { body: corpo, icon: 'icon-192.png' });
+}
 
 // ---------------------------------------------------------------
 // Guarda de autenticação
@@ -58,10 +79,44 @@ function atualizarBadge() {
   }
 }
 
-btnSino.addEventListener('click', () => {
-  naoLidas = 0;
-  atualizarBadge();
+btnSino.addEventListener('click', (evento) => {
+  evento.stopPropagation();
+  const estaAberto = !painelNotificacoesEl.hidden;
+  painelNotificacoesEl.hidden = estaAberto;
+  if (!estaAberto) {
+    naoLidas = 0;
+    atualizarBadge();
+  }
 });
+
+// Fecha o painel ao clicar fora dele
+document.addEventListener('click', (evento) => {
+  if (painelNotificacoesEl.hidden) return;
+  if (evento.target.closest('.wrapper-notificacoes')) return;
+  painelNotificacoesEl.hidden = true;
+});
+
+function adicionarNotificacao(texto) {
+  historicoNotificacoes.unshift({ texto, hora: new Date() });
+  historicoNotificacoes = historicoNotificacoes.slice(0, 20);
+  renderizarPainelNotificacoes();
+}
+
+function renderizarPainelNotificacoes() {
+  if (historicoNotificacoes.length === 0) {
+    listaNotificacoesEl.innerHTML = '<p class="texto-vazio-notificacoes">Nenhuma notificação ainda.</p>';
+    return;
+  }
+
+  listaNotificacoesEl.innerHTML = historicoNotificacoes
+    .map((n) => `
+      <div class="item-notificacao">
+        ${escaparHtml(n.texto)}
+        <span class="hora-notificacao">${n.hora.toLocaleString('pt-BR')}</span>
+      </div>
+    `)
+    .join('');
+}
 
 // ---------------------------------------------------------------
 // Carregamento e renderização da lista
@@ -282,7 +337,10 @@ function iniciarRealtime() {
         itens.unshift(payload.new);
         naoLidas += 1;
         atualizarBadge();
-        mostrarToast(`Nova dedicatória de ${payload.new.nome}!`);
+        const texto = `Nova dedicatória de ${payload.new.nome}!`;
+        mostrarToast(texto);
+        adicionarNotificacao(texto);
+        notificarSistema('Nova dedicatória recebida', texto);
         renderizarLista();
       }
     )
@@ -313,6 +371,7 @@ function iniciarRealtime() {
   const autenticado = await protegerPagina();
   if (!autenticado) return;
 
+  pedirPermissaoNotificacao();
   await carregarDedicatorias();
   iniciarRealtime();
 })();
