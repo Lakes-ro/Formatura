@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deixe sua Homenagem</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Música tema de fundo. Navegadores bloqueiam autoplay com som;
+       por isso existe o botão flutuante para o visitante ativar. -->
+  <audio id="musica-tema" src="tema.mp3" loop preload="auto"></audio>
+  <button id="btn-audio" class="btn-audio" type="button" aria-label="Ativar música tema">🔇</button>
+
+  <main class="container">
+    <header class="cabecalho">
+      <h1>Deixe sua Homenagem</h1>
+      <p>Compartilhe uma mensagem, foto ou áudio especial.</p>
+    </header>
+
+    <form id="form-dedicatoria" class="card-form" novalidate action="javascript:void(0);">
+
+      <div class="campo">
+        <label for="nome">Seu nome</label>
+        <input type="text" id="nome" name="nome" required maxlength="120" placeholder="Digite seu nome">
+      </div>
+
+      <div class="campo">
+        <label for="relacao">Relação com o homenageado</label>
+        <select id="relacao" name="relacao" required>
+          <option value="" disabled selected>Selecione...</option>
+          <option value="Parentes">Parentes</option>
+          <option value="Amigos">Amigos</option>
+          <option value="Outros">Outros</option>
+        </select>
+      </div>
+
+      <div class="campo" id="campo-relacao-outro" hidden>
+        <label for="relacao-outro">Qual?</label>
+        <input type="text" id="relacao-outro" name="relacao-outro" maxlength="60" placeholder="Digite a relação">
+      </div>
+
+      <div class="campo">
+        <label for="mensagem">Sua mensagem</label>
+        <div class="editor-toolbar" role="toolbar" aria-label="Formatação de texto">
+          <button type="button" data-cmd="bold" aria-label="Negrito"><b>B</b></button>
+          <button type="button" data-cmd="italic" aria-label="Itálico"><i>I</i></button>
+          <button type="button" data-cmd="underline" aria-label="Sublinhado"><u>U</u></button>
+        </div>
+        <div id="mensagem"
+             class="editor-rico"
+             contenteditable="true"
+             role="textbox"
+             aria-multiline="true"
+             data-placeholder="Escreva sua mensagem..."></div>
+      </div>
+
+      <div class="campo">
+        <label for="midia">Foto ou áudio (opcional)</label>
+        <input type="file" id="midia" name="midia" accept="image/*,audio/*">
+        <span id="midia-preview" class="midia-preview"></span>
+      </div>
+
+      <button type="submit" id="btn-enviar" class="btn-neon">Enviar Homenagem</button>
+      <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+
+  <!-- DOMPurify: sanitização do HTML digitado no editor rico, evita XSS -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+
+  <script type="module" src="supabase.js"></script>
+  <script type="module" src="form.js"></script>
+</body>
+</html>
