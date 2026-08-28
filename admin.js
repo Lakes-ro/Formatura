@@ -135,6 +135,14 @@ async function carregarDedicatorias() {
 
   itens = data;
   renderizarLista();
+
+  // Preenche o painel do sino com as últimas dedicatórias já existentes,
+  // pra ele não ficar vazio até chegar algo novo em tempo real.
+  historicoNotificacoes = itens.slice(0, 10).map((item) => ({
+    texto: `Dedicatória de ${item.nome}`,
+    hora: new Date(item.criado_em),
+  }));
+  renderizarPainelNotificacoes();
 }
 
 function itensFiltrados() {
