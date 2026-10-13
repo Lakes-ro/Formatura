@@ -3,12 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deixe sua Homenagem</title>
+<title>Ajude a Celebrar Minha Formatura</title>
+<meta name="description" content="Deixe uma mensagem, foto ou vídeo de carinho para celebrar essa formatura.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Ajude a Celebrar Minha Formatura">
+<meta property="og:description" content="Deixe sua mensagem de carinho para celebrar essa conquista! 🎓">
+<meta property="og:url" content="https://lakes-ro.github.io/Formatura/">
+<meta property="og:image" content="https://lakes-ro.github.io/Formatura/icon-512.png">
+<meta name="twitter:card" content="summary_large_image">
+
 <link rel="manifest" href="manifest-publico.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#0e0e10">
-<link rel="stylesheet" href="style.css">
+<meta name="theme-color" content="#0a0b0e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
@@ -17,12 +29,36 @@
   <audio id="musica-tema" src="tema.mp3" loop preload="auto"></audio>
   <button id="btn-audio" class="btn-audio" type="button" aria-label="Ativar música tema">🔇</button>
 
-  <main class="container">
-    <header class="cabecalho">
-      <h1>Deixe sua Homenagem</h1>
-      <p>Compartilhe uma mensagem, foto ou áudio especial.</p>
-    </header>
+  <nav class="nav-site">
+    <a href="index.html" class="nav-logo">Formatura<span>.</span></a>
+    <div class="nav-links">
+      <a href="index.html" class="ativo">Homenagear</a>
+      <a href="mural.html">Mural</a>
+      <a href="admin_login.html" class="nav-admin" aria-label="Área administrativa" title="Área administrativa">🔒</a>
+    </div>
+  </nav>
 
+  <section class="hero-mural">
+    <div class="hero-foto">
+      <img src="Eu.png" alt="Foto do formando" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="hero-foto-placeholder">🎓</div>
+    </div>
+
+    <p class="hero-eyebrow">Formatura 2026</p>
+    <h1 class="hero-titulo">Ajude a Celebrar Essa Conquista</h1>
+    <p class="hero-texto">
+      Depois de anos de dedicação, chegou a hora de comemorar. Deixe uma
+      mensagem, uma foto ou um vídeo especial — sua homenagem vira parte
+      da história dessa formatura.
+    </p>
+
+    <div class="hero-stats">
+      <span id="contador-homenagens">—</span>
+      <span id="hero-stats-label" class="hero-stats-label">pessoas já deixaram uma homenagem</span>
+    </div>
+  </section>
+
+  <main class="container">
     <form id="form-dedicatoria" class="card-form" novalidate action="javascript:void(0);">
 
       <div class="campo">
@@ -69,13 +105,18 @@
       <button type="submit" id="btn-enviar" class="btn-neon">Enviar Homenagem</button>
       <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
     </form>
+
+    <a href="mural.html" class="link-mural link-mural-centro">Ver o mural de homenagens →</a>
   </main>
+
+  <footer class="rodape-mural">
+    <p>Feito com carinho para essa formatura 🎓</p>
+  </footer>
 
   <!-- DOMPurify: sanitização do HTML digitado no editor rico, evita XSS -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 
-  <script type="module" src="supabase.js?v=2"></script>
-  <script type="module" src="form.js?v=2"></script>
+  <script type="module" src="form.js?v=4"></script>
 
   <script>
     if ('serviceWorker' in navigator) {

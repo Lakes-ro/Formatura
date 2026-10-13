@@ -12,12 +12,43 @@ const midiaPreview = document.getElementById('midia-preview');
 const btnAudio = document.getElementById('btn-audio');
 const musica = document.getElementById('musica-tema');
 
-// Tags permitidas no editor de rich text — mantém a formatação básica
-// e é a mesma lista usada como whitelist do DOMPurify.
-const TAGS_PERMITIDAS = ['b', 'i', 'u', 'strong', 'em', 'br', 'p'];
+const TAGS_PERMITIDAS = ['b', 'i', 'u', 'strong', 'em', 'br', 'p', 'div'];
+
+document.execCommand('defaultParagraphSeparator', false, 'p');
 
 // ---------------------------------------------------------------
-// Toolbar simples de formatação (negrito / itálico / sublinhado)
+// Prova social: quantas homenagens já foram publicadas (aprovadas).
+// Atualiza ao abrir, ao voltar para a aba e a cada 30 s.
+// ---------------------------------------------------------------
+async function carregarContador() {
+  const contadorEl = document.getElementById('contador-homenagens');
+  const labelEl = document.getElementById('hero-stats-label');
+  if (!contadorEl || !labelEl) return;
+
+  const { count, error } = await supabase
+    .from('dedicatorias')
+    .select('*', { count: 'exact', head: true })
+    .eq('aprovado', true);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  contadorEl.textContent = count ?? 0;
+  labelEl.textContent = count === 1
+    ? 'pessoa já deixou uma homenagem'
+    : 'pessoas já deixaram uma homenagem';
+}
+
+carregarContador();
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') carregarContador();
+});
+setInterval(carregarContador, 30000);
+
+// ---------------------------------------------------------------
+// Toolbar simples de formatação
 // ---------------------------------------------------------------
 document.querySelectorAll('.editor-toolbar button').forEach((botao) => {
   botao.addEventListener('click', () => {
@@ -33,12 +64,14 @@ const selectRelacao = document.getElementById('relacao');
 const campoRelacaoOutro = document.getElementById('campo-relacao-outro');
 const inputRelacaoOutro = document.getElementById('relacao-outro');
 
-selectRelacao.addEventListener('change', () => {
+function atualizarCampoOutro() {
   const mostrarOutro = selectRelacao.value === 'Outros';
   campoRelacaoOutro.hidden = !mostrarOutro;
   inputRelacaoOutro.required = mostrarOutro;
   if (!mostrarOutro) inputRelacaoOutro.value = '';
-});
+}
+
+selectRelacao.addEventListener('change', atualizarCampoOutro);
 
 function obterRelacaoFinal() {
   if (selectRelacao.value === 'Outros') {
@@ -56,7 +89,7 @@ inputMidia.addEventListener('change', () => {
 });
 
 // ---------------------------------------------------------------
-// Música tema — precisa de interação do usuário para tocar com som
+// Música tema
 // ---------------------------------------------------------------
 btnAudio.addEventListener('click', () => {
   if (musica.paused) {
@@ -105,8 +138,6 @@ form.addEventListener('submit', async (evento) => {
   const relacao = DOMPurify.sanitize(obterRelacaoFinal(), { ALLOWED_TAGS: [] });
   const mensagemTexto = editor.textContent.trim();
 
-  // Sanitização rigorosa do HTML digitado — remove qualquer coisa fora da whitelist
-  // (scripts, atributos on*, iframes, etc). Isso é o que impede o XSS.
   const mensagemHtml = DOMPurify.sanitize(editor.innerHTML, {
     ALLOWED_TAGS: TAGS_PERMITIDAS,
     ALLOWED_ATTR: [],
@@ -140,10 +171,14 @@ form.addEventListener('submit', async (evento) => {
 
     if (error) throw error;
 
-    mostrarStatus('Homenagem enviada! Obrigado por participar.', 'sucesso');
+    mostrarStatus(
+      'Homenagem enviada! Ela aparecerá no mural assim que for aprovada. Obrigado por participar.',
+      'sucesso'
+    );
     form.reset();
     editor.innerHTML = '';
     midiaPreview.textContent = '';
+    atualizarCampoOutro(); // form.reset() não dispara "change": esconde o campo "Qual?"
   } catch (erro) {
     console.error(erro);
     mostrarStatus('Não foi possível enviar. Tente novamente.', 'erro');

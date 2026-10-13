@@ -1,7 +1,8 @@
 // admin.js
 import { supabase, BUCKET_MIDIAS } from './supabase.js';
+import { pushSuportado, estadoPush, ativarPush, desativarPush, sincronizarPush } from './push.js';
 
-const TAGS_PERMITIDAS = ['b', 'i', 'u', 'strong', 'em', 'br', 'p'];
+const TAGS_PERMITIDAS = ['b', 'i', 'u', 'strong', 'em', 'br', 'p', 'div'];
 
 const listaEl = document.getElementById('lista-dedicatorias');
 const listaVaziaEl = document.getElementById('lista-vazia');
@@ -21,19 +22,15 @@ let historicoNotificacoes = [];
 // ---------------------------------------------------------------
 // Notificações nativas do sistema (Web Notifications API)
 // ---------------------------------------------------------------
-function pedirPermissaoNotificacao() {
-  if (!('Notification' in window)) return;
-  if (Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
-}
-
-function notificarSistema(titulo, corpo) {
+function notificarSistema(titulo, corpo, id) {
   if (!('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
-  // Se a página estiver em segundo plano ou minimizada, a notificação
-  // do sistema operacional aparece mesmo assim, enquanto a aba estiver aberta.
-  new Notification(titulo, { body: corpo, icon: 'icon-192.png' });
+  try {
+    // Mesma tag usada pelo push do servidor: se os dois chegarem, um substitui o outro.
+    new Notification(titulo, { body: corpo, icon: 'icon-192.png', tag: id ? `dedicatoria-${id}` : undefined });
+  } catch (e) {
+    // Alguns navegadores móveis exigem Service Worker para notificar; ignora.
+  }
 }
 
 // ---------------------------------------------------------------
@@ -60,7 +57,7 @@ btnSair.addEventListener('click', async () => {
 });
 
 // ---------------------------------------------------------------
-// Toasts de notificação
+// Toasts
 // ---------------------------------------------------------------
 function mostrarToast(texto) {
   const toast = document.createElement('div');
@@ -79,21 +76,89 @@ function atualizarBadge() {
   }
 }
 
+// ---------------------------------------------------------------
+// Alertas push (notificação no aparelho, mesmo com o app fechado)
+// ---------------------------------------------------------------
+const btnPush = document.getElementById('btn-push');
+
+async function atualizarBotaoPush() {
+  if (!btnPush) return;
+  const estado = await estadoPush();
+  btnPush.disabled = false;
+  btnPush.classList.toggle('ativo', estado === 'ativo');
+
+  if (estado === 'indisponivel') {
+    btnPush.textContent = '🔕 Alertas indisponíveis';
+    btnPush.disabled = true;
+    btnPush.title = 'Este navegador não suporta alertas push. No iPhone, instale o app na Tela de Início (Compartilhar → Adicionar à Tela de Início) e abra por lá.';
+  } else if (estado === 'bloqueado') {
+    btnPush.textContent = '🔕 Alertas bloqueados';
+    btnPush.disabled = true;
+    btnPush.title = 'As notificações estão bloqueadas. Libere nas configurações do site/navegador e recarregue.';
+  } else if (estado === 'ativo') {
+    btnPush.textContent = '🔔 Alertas ativos';
+    btnPush.title = 'Toque para desativar os alertas neste aparelho';
+  } else {
+    btnPush.textContent = '🔕 Ativar alertas';
+    btnPush.title = 'Receber uma notificação no aparelho a cada nova homenagem';
+  }
+}
+
+if (btnPush) {
+  btnPush.addEventListener('click', async () => {
+    btnPush.disabled = true;
+    try {
+      if ((await estadoPush()) === 'ativo') {
+        await desativarPush();
+        mostrarToast('Alertas desativados neste aparelho.');
+      } else {
+        await ativarPush();
+        mostrarToast('Alertas ativados! Você será avisado a cada nova homenagem.');
+      }
+    } catch (erro) {
+      console.error(erro);
+      mostrarToast(
+        erro.message === 'permissao-negada'
+          ? 'Permissão negada. Libere as notificações nas configurações do navegador.'
+          : 'Não foi possível configurar os alertas. Tente novamente.'
+      );
+    }
+    await atualizarBotaoPush();
+  });
+}
+
+// ---------------------------------------------------------------
+// Painel de notificações: abre/fecha SOMENTE por clique
+// (depende da regra [hidden]{display:none!important} no style.css)
+// ---------------------------------------------------------------
+function fecharPainel() {
+  painelNotificacoesEl.hidden = true;
+  btnSino.setAttribute('aria-expanded', 'false');
+}
+
+function abrirPainel() {
+  painelNotificacoesEl.hidden = false;
+  btnSino.setAttribute('aria-expanded', 'true');
+  naoLidas = 0;
+  atualizarBadge();
+}
+
+btnSino.setAttribute('aria-expanded', 'false');
 btnSino.addEventListener('click', (evento) => {
   evento.stopPropagation();
-  const estaAberto = !painelNotificacoesEl.hidden;
-  painelNotificacoesEl.hidden = estaAberto;
-  if (!estaAberto) {
-    naoLidas = 0;
-    atualizarBadge();
-  }
+  if (painelNotificacoesEl.hidden) abrirPainel();
+  else fecharPainel();
 });
 
-// Fecha o painel ao clicar fora dele
+// Fecha ao clicar fora ou apertar Esc
 document.addEventListener('click', (evento) => {
   if (painelNotificacoesEl.hidden) return;
   if (evento.target.closest('.wrapper-notificacoes')) return;
-  painelNotificacoesEl.hidden = true;
+  fecharPainel();
+});
+
+document.addEventListener('keydown', (evento) => {
+  if (evento.key === 'Escape' && !painelNotificacoesEl.hidden) fecharPainel();
 });
 
 function adicionarNotificacao(texto) {
@@ -136,8 +201,6 @@ async function carregarDedicatorias() {
   itens = data;
   renderizarLista();
 
-  // Preenche o painel do sino com as últimas dedicatórias já existentes,
-  // pra ele não ficar vazio até chegar algo novo em tempo real.
   historicoNotificacoes = itens.slice(0, 10).map((item) => ({
     texto: `Dedicatória de ${item.nome}`,
     hora: new Date(item.criado_em),
@@ -155,25 +218,36 @@ function formatarData(iso) {
   return new Date(iso).toLocaleString('pt-BR');
 }
 
-// Escapa qualquer HTML antes de inserir nome/relacao no template —
-// nome e relacao vêm de um <input> livre no formulário público e
-// NUNCA devem ser tratados como HTML confiável.
+// nome e relacao vêm de input livre: NUNCA tratar como HTML confiável.
 function escaparHtml(texto) {
   const div = document.createElement('div');
   div.textContent = texto ?? '';
-  return div.innerHTML;
+  return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+const PREFIXO_MIDIA = 'https://zqaozrockgktjuumokox.supabase.co/storage/v1/object/public/midias/';
+function urlMidiaSegura(url) {
+  if (typeof url !== 'string' || !url.startsWith(PREFIXO_MIDIA)) return '';
+  return /^[A-Za-z0-9._~:\/?#@!$&()*+,;=%-]+$/.test(url) ? url : '';
 }
 
 function criarBlocoMidia(item) {
-  if (!item.midia_url) return '';
+  const url = urlMidiaSegura(item.midia_url);
+  if (!url) return '';
   const nomeSeguro = escaparHtml(item.nome);
   if (item.midia_tipo === 'imagem') {
-    return `<div class="midia-item"><img src="${item.midia_url}" alt="Imagem enviada por ${nomeSeguro}"></div>`;
+    return `<div class="midia-item"><img src="${url}" alt="Imagem enviada por ${nomeSeguro}"></div>`;
   }
   if (item.midia_tipo === 'audio') {
-    return `<div class="midia-item"><audio controls src="${item.midia_url}"></audio></div>`;
+    return `<div class="midia-item"><audio controls src="${url}"></audio></div>`;
   }
   return '';
+}
+
+// Há algum card em modo de edição? Se sim, não re-renderizamos a lista
+// (senão o texto que o admin está editando seria perdido).
+function editandoAgora() {
+  return !!listaEl.querySelector('.item-mensagem.editando');
 }
 
 function renderizarLista() {
@@ -208,7 +282,10 @@ function renderizarLista() {
       ${criarBlocoMidia(item)}
 
       <div class="item-rodape">
-        <span class="item-data">${formatarData(item.criado_em)}</span>
+        <span class="item-data">
+          ${formatarData(item.criado_em)}
+          <span class="item-ip" title="${escaparHtml(item.user_agent || 'user-agent não capturado')}">· IP: ${escaparHtml(item.ip_remetente || 'desconhecido')}</span>
+        </span>
         <div class="item-acoes">
           <button type="button" class="btn-secundario btn-editar">Editar</button>
           <button type="button" class="btn-secundario btn-salvar" hidden>Salvar</button>
@@ -227,24 +304,39 @@ function renderizarLista() {
 listaEl.addEventListener('change', async (evento) => {
   if (!evento.target.classList.contains('check-aprovar')) return;
 
-  const card = evento.target.closest('.item-dedicatoria');
+  const checkbox = evento.target;
+  const card = checkbox.closest('.item-dedicatoria');
   const id = card.dataset.id;
-  const aprovado = evento.target.checked;
+  const aprovado = checkbox.checked;
 
-  const { error } = await supabase.from('dedicatorias').update({ aprovado }).eq('id', id);
+  checkbox.disabled = true;
 
-  if (error) {
-    mostrarToast('Não foi possível atualizar a aprovação.');
-    evento.target.checked = !aprovado;
-    console.error(error);
+  // .select() devolve as linhas realmente alteradas. Se o RLS bloquear,
+  // o Supabase NÃO dá erro: apenas altera 0 linhas. Detectamos isso aqui.
+  const { data, error } = await supabase
+    .from('dedicatorias')
+    .update({ aprovado })
+    .eq('id', id)
+    .select('id, aprovado');
+
+  checkbox.disabled = false;
+
+  if (error || !data || data.length === 0) {
+    mostrarToast(
+      error
+        ? 'Não foi possível atualizar a aprovação.'
+        : 'A aprovação não foi gravada (permissão negada ou sessão expirada). Saia e entre de novo.'
+    );
+    checkbox.checked = !aprovado;
+    console.error(error || 'update afetou 0 linhas (RLS/GRANT)');
     return;
   }
 
   const item = itens.find((i) => i.id === id);
-  if (item) item.aprovado = aprovado;
+  if (item) item.aprovado = data[0].aprovado;
 
-  mostrarToast(aprovado ? 'Dedicatória aprovada.' : 'Aprovação removida.');
-  renderizarLista();
+  mostrarToast(aprovado ? 'Dedicatória aprovada e publicada no mural.' : 'Aprovação removida do mural.');
+  if (!editandoAgora()) renderizarLista();
 });
 
 listaEl.addEventListener('click', async (evento) => {
@@ -256,6 +348,7 @@ listaEl.addEventListener('click', async (evento) => {
   if (evento.target.classList.contains('btn-editar')) {
     const mensagemEl = card.querySelector('[data-campo="mensagem"]');
     mensagemEl.contentEditable = 'true';
+    document.execCommand('defaultParagraphSeparator', false, 'p');
     mensagemEl.classList.add('editando');
     card.querySelector('.btn-editar').hidden = true;
     card.querySelector('.btn-salvar').hidden = false;
@@ -271,14 +364,15 @@ listaEl.addEventListener('click', async (evento) => {
       ALLOWED_ATTR: [],
     });
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('dedicatorias')
       .update({ mensagem: mensagemSanitizada })
-      .eq('id', id);
+      .eq('id', id)
+      .select('id');
 
-    if (error) {
+    if (error || !data || data.length === 0) {
       mostrarToast('Não foi possível salvar a edição.');
-      console.error(error);
+      console.error(error || 'update afetou 0 linhas (RLS/GRANT)');
       return;
     }
 
@@ -300,11 +394,15 @@ listaEl.addEventListener('click', async (evento) => {
 
     const item = itens.find((i) => i.id === id);
 
-    const { error } = await supabase.from('dedicatorias').delete().eq('id', id);
+    const { data, error } = await supabase
+      .from('dedicatorias')
+      .delete()
+      .eq('id', id)
+      .select('id');
 
-    if (error) {
+    if (error || !data || data.length === 0) {
       mostrarToast('Não foi possível excluir.');
-      console.error(error);
+      console.error(error || 'delete afetou 0 linhas (RLS/GRANT)');
       return;
     }
 
@@ -333,7 +431,7 @@ abas.forEach((aba) => {
 });
 
 // ---------------------------------------------------------------
-// Notificações em tempo real (novas dedicatórias)
+// Notificações em tempo real
 // ---------------------------------------------------------------
 function iniciarRealtime() {
   supabase
@@ -342,14 +440,15 @@ function iniciarRealtime() {
       'postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'dedicatorias' },
       (payload) => {
+        if (itens.some((i) => i.id === payload.new.id)) return; // evita duplicar
         itens.unshift(payload.new);
         naoLidas += 1;
         atualizarBadge();
         const texto = `Nova dedicatória de ${payload.new.nome}!`;
         mostrarToast(texto);
         adicionarNotificacao(texto);
-        notificarSistema('Nova dedicatória recebida', texto);
-        renderizarLista();
+        notificarSistema('Nova dedicatória recebida', texto, payload.new.id);
+        if (!editandoAgora()) renderizarLista();
       }
     )
     .on(
@@ -358,7 +457,7 @@ function iniciarRealtime() {
       (payload) => {
         const index = itens.findIndex((i) => i.id === payload.new.id);
         if (index !== -1) itens[index] = payload.new;
-        renderizarLista();
+        if (!editandoAgora()) renderizarLista();
       }
     )
     .on(
@@ -366,7 +465,7 @@ function iniciarRealtime() {
       { event: 'DELETE', schema: 'public', table: 'dedicatorias' },
       (payload) => {
         itens = itens.filter((i) => i.id !== payload.old.id);
-        renderizarLista();
+        if (!editandoAgora()) renderizarLista();
       }
     )
     .subscribe();
@@ -379,7 +478,8 @@ function iniciarRealtime() {
   const autenticado = await protegerPagina();
   if (!autenticado) return;
 
-  pedirPermissaoNotificacao();
   await carregarDedicatorias();
   iniciarRealtime();
+  if (pushSuportado()) await sincronizarPush();
+  await atualizarBotaoPush();
 })();

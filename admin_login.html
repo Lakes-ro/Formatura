@@ -8,7 +8,10 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0e0e10">
-<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
   <main class="container container-estreito">
@@ -31,10 +34,11 @@
       <button type="submit" id="btn-entrar" class="btn-neon">Entrar</button>
       <p id="login-status" class="form-status" role="status" aria-live="polite"></p>
     </form>
+
+    <a href="index.html" class="link-mural link-mural-centro">← Voltar ao site</a>
   </main>
 
-  <script type="module" src="supabase.js?v=2"></script>
-  <script type="module" src="admin_login.js?v=2"></script>
+  <script type="module" src="admin_login.js?v=3"></script>
 
   <script>
     if ('serviceWorker' in navigator) {

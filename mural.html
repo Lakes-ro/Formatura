@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mural de Homenagens · Formatura</title>
+<meta name="description" content="Deixe uma mensagem, foto ou vídeo de carinho para celebrar essa formatura. Faça parte desse mural especial.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mural de Homenagens · Formatura">
+<meta property="og:description" content="Deixe sua mensagem de carinho para celebrar essa conquista! 🎓">
+<meta property="og:url" content="https://lakes-ro.github.io/Formatura/mural.html">
+<meta property="og:image" content="https://lakes-ro.github.io/Formatura/icon-512.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="manifest" href="manifest-publico.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0a0b0e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=6">
+</head>
+<body>
+
+  <nav class="nav-site">
+    <a href="index.html" class="nav-logo">Formatura<span>.</span></a>
+    <div class="nav-links">
+      <a href="index.html">Homenagear</a>
+      <a href="mural.html" class="ativo">Mural</a>
+      <a href="admin_login.html" class="nav-admin" aria-label="Área administrativa" title="Área administrativa">🔒</a>
+    </div>
+  </nav>
+
+  <section class="hero-mural">
+    <div class="hero-foto">
+      <img src="Eu.png" alt="Foto do formando" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="hero-foto-placeholder">🎓</div>
+    </div>
+
+    <p class="hero-eyebrow">Formatura 2026</p>
+    <h1 class="hero-titulo">Vou me formar!</h1>
+    <p class="hero-texto">
+      Depois de anos de dedicação, chegou a hora de comemorar essa conquista.
+      Deixe uma mensagem, uma foto ou um vídeo especial — cada homenagem
+      vira parte desse mural, pra sempre.
+    </p>
+
+    <div class="hero-stats">
+      <span id="contador-homenagens">0</span>
+      <span id="hero-stats-label" class="hero-stats-label">homenagens recebidas até agora</span>
+    </div>
+
+    <a href="index.html" class="btn-neon hero-cta">Deixar minha homenagem</a>
+  </section>
+
+  <!-- JORNADA: contexto emocional antes das mensagens. Hero (quem) → Jornada
+       (de onde veio, quem esteve junto) → Mural (o carinho de quem participou). -->
+  <section class="jornada" id="jornada" aria-labelledby="jornada-titulo">
+    <div class="divisor-ornamento" aria-hidden="true"><span>✦</span></div>
+
+    <p class="mural-eyebrow">Jornada</p>
+    <h2 class="mural-titulo jornada-titulo" id="jornada-titulo">Quem Caminhou Comigo</h2>
+    <p class="jornada-texto">
+      Cada rosto nestas fotos fez parte do caminho até aqui.
+      Toque em uma imagem para ampliar.
+    </p>
+
+    <div class="jornada-grid">
+
+      <figure class="foto-card foto-card--destaque">
+        <button type="button" class="foto-abrir" data-legenda="Vivências — sempre aprendendo." aria-label="Ampliar foto: Vivências">
+          <img src="vivencias.jpeg" width="1158" height="596"
+               alt="Grande grupo de estudantes reunidos ao ar livre, em uma praça, segurando folhetos azuis"
+               loading="lazy" decoding="async">
+        </button>
+        <figcaption class="foto-legenda">
+          <span class="foto-legenda-tag">Vivências</span>
+          <span class="foto-legenda-texto">Sempre aprendendo.</span>
+        </figcaption>
+      </figure>
+
+      <figure class="foto-card">
+        <button type="button" class="foto-abrir" data-legenda="Dinâmica das profissões — aprendendo e se divertindo juntos." aria-label="Ampliar foto: Dinâmica das profissões">
+          <img src="dinamica-profissoes.jpg" width="1280" height="720"
+               alt="Turma em sala de aula com etiquetas de profissões coladas nas roupas, sorrindo para a foto"
+               loading="lazy" decoding="async">
+        </button>
+        <figcaption class="foto-legenda">
+          <span class="foto-legenda-tag">Dinâmica das profissões</span>
+          <span class="foto-legenda-texto">Aprendendo e se divertindo juntos.</span>
+        </figcaption>
+      </figure>
+
+      <figure class="foto-card">
+        <button type="button" class="foto-abrir" data-legenda="Turma de Contábeis — quem dividiu a caminhada." aria-label="Ampliar foto: Turma de Contábeis">
+          <img src="turma-contabeis.jpg" width="1600" height="900"
+               alt="Grupo da turma de Ciências Contábeis posando em um corredor amplo da faculdade"
+               loading="lazy" decoding="async">
+        </button>
+        <figcaption class="foto-legenda">
+          <span class="foto-legenda-tag">Turma de Contábeis</span>
+          <span class="foto-legenda-texto">Quem dividiu a caminhada.</span>
+        </figcaption>
+      </figure>
+
+      <figure class="foto-card">
+        <button type="button" class="foto-abrir" data-legenda="Confraternização — boas companhias, boas lembranças." aria-label="Ampliar foto: Confraternização">
+          <img src="confraternizacao.jpeg" width="1600" height="900"
+               alt="Onze pessoas sorrindo para a foto, em duas fileiras, sob a varanda de uma casa"
+               loading="lazy" decoding="async">
+        </button>
+        <figcaption class="foto-legenda">
+          <span class="foto-legenda-tag">Confraternização</span>
+          <span class="foto-legenda-texto">Boas companhias, boas lembranças.</span>
+        </figcaption>
+      </figure>
+
+    </div>
+
+    <div class="divisor-ornamento divisor-fim" aria-hidden="true"><span>✦</span></div>
+  </section>
+
+  <main class="mural-corpo">
+    <p class="mural-eyebrow">Mural</p>
+    <h2 class="mural-titulo">Mensagens de Carinho</h2>
+
+    <p id="mural-vazio" class="texto-vazio" hidden>Nenhuma homenagem publicada ainda. Seja o primeiro a deixar uma!</p>
+
+    <div id="grid-dedicatorias" class="grid-dedicatorias"></div>
+  </main>
+
+  <footer class="rodape-mural">
+    <p>Feito com carinho para essa formatura 🎓</p>
+    <a href="index.html">Deixar minha homenagem →</a>
+  </footer>
+
+  <!-- Lightbox: <dialog> nativo (Esc fecha, foco preso, acessível) -->
+  <dialog id="lightbox" class="lightbox" aria-label="Foto ampliada">
+    <button type="button" class="lightbox-fechar" aria-label="Fechar">✕</button>
+    <img id="lightbox-img" src="" alt="">
+    <p id="lightbox-legenda" class="lightbox-legenda"></p>
+  </dialog>
+
+  <script src="galeria.js?v=1" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <script type="module" src="mural.js?v=4"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+    }
+  </script>
+</body>
+</html>

@@ -8,13 +8,19 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0e0e10">
-<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
   <header class="topo-admin">
     <h1>Moderação de Dedicatórias</h1>
     <div class="topo-admin-acoes">
+      <a href="index.html" class="btn-secundario btn-voltar" title="Voltar ao site">← Site</a>
+      <button id="btn-push" class="btn-secundario btn-push" type="button">🔕 Ativar alertas</button>
+
       <div class="wrapper-notificacoes">
         <button id="btn-sino" class="btn-sino" type="button" aria-label="Notificações">
           🔔
@@ -47,8 +53,7 @@
   <div id="area-toasts" class="area-toasts" aria-live="polite"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
-  <script type="module" src="supabase.js?v=2"></script>
-  <script type="module" src="admin.js?v=2"></script>
+  <script type="module" src="admin.js?v=4"></script>
 
   <script>
     if ('serviceWorker' in navigator) {
